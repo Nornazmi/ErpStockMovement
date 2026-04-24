@@ -1,0 +1,13 @@
+using Microsoft.EntityFrameworkCore;
+using Inventory.API.Models;
+
+namespace Inventory.API.Data;
+
+public class InventoryDbContext : DbContext
+{
+    public InventoryDbContext(DbContextOptions<InventoryDbContext> options) : base(options)
+    {
+    }
+
+    public DbSet<InventoryItem> InventoryItems { get; set; }
+}
