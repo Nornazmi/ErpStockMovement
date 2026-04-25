@@ -10,4 +10,6 @@ public class ProductDbContext : DbContext
     }
 
     public DbSet<ProductItem> Products { get; set; }
+    public DbSet<Order> Orders { get; set; }
+    public DbSet<OrderItem> OrderItems { get; set; }
 }
