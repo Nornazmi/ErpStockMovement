@@ -1,4 +1,4 @@
-namespace Inventory.API.Models;
+namespace Inventory.API.DTOs;
 
 public class ReserveRequest
 {

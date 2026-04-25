@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Inventory.API.DTOs;
 using Inventory.API.Models;
 using Inventory.API.Services;
 
@@ -26,5 +27,12 @@ public class InventoryController : ControllerBase
         }
 
         return Ok(new { message = "Stock reserved successfully." });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] CreateInventoryRequest request)
+    {
+        var inventoryItem = await _inventoryService.CreateInventoryAsync(request);
+        return CreatedAtAction(nameof(Create), new { id = inventoryItem.Id }, inventoryItem);
     }
 }

@@ -1,6 +1,91 @@
-@Inventory.API_HostAddress = http://localhost:5103
+@Inventory.API_HostAddress = https://localhost:7099
 
-GET {{Inventory.API_HostAddress}}/weatherforecast/
-Accept: application/json
+# ============================================
+# STEP-BY-STEP TEST FLOW (Run in Order)
+# ============================================
+# STEP 1: Create Inventory Item
+# STEP 2: Create Product (in ProductOrder.API)
+# STEP 3: Reserve Stock
+# STEP 4: Create Order (in ProductOrder.API - calls Inventory API)
+# ============================================
+
+### STEP 1: Create Inventory Item (Laptop)
+# Expected: 201 Created with inventoryItem object
+# Prerequisites: None - creates stock for ProductId 1
+# Note: After this, run ProductOrder.API STEP 1
+POST {{Inventory.API_HostAddress}}/api/inventory
+Content-Type: application/json
+
+{
+  "productId": 1,
+  "stock": 100
+}
+
+###
+
+### STEP 1b: Create Inventory Item (Mouse)
+# Expected: 201 Created with inventoryItem object
+POST {{Inventory.API_HostAddress}}/api/inventory
+Content-Type: application/json
+
+{
+  "productId": 2,
+  "stock": 50
+}
+
+###
+
+### STEP 3: Reserve Stock (Success)
+# Expected: 200 OK with message "Stock reserved successfully."
+# Prerequisites: Inventory item with ProductId 1 must exist (STEP 1)
+# Note: Stock will be reduced by 5
+POST {{Inventory.API_HostAddress}}/api/inventory/reserve
+Content-Type: application/json
+
+{
+  "productId": 1,
+  "quantity": 5
+}
+
+###
+
+### STEP 3b: Reserve Stock (Insufficient Stock)
+# Expected: 400 BadRequest with message "Insufficient stock or product not found."
+# Test: Try to reserve more than available stock
+POST {{Inventory.API_HostAddress}}/api/inventory/reserve
+Content-Type: application/json
+
+{
+  "productId": 1,
+  "quantity": 9999
+}
+
+###
+
+### STEP 3c: Reserve Stock (Product Not Found)
+# Expected: 400 BadRequest with message "Insufficient stock or product not found."
+POST {{Inventory.API_HostAddress}}/api/inventory/reserve
+Content-Type: application/json
+
+{
+  "productId": 999,
+  "quantity": 5
+}
+
+###
+
+# ============================================
+# EDGE CASES
+# ============================================
+
+### Reserve Stock (Zero Quantity)
+# Expected: 200 OK or 400 BadRequest depending on inventory logic
+POST {{Inventory.API_HostAddress}}/api/inventory/reserve
+Content-Type: application/json
+
+{
+  "productId": 1,
+  "quantity": 0
+}
 
 ###

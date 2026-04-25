@@ -1,6 +1,147 @@
-@ProductOrder.API_HostAddress = http://localhost:5079
+@ProductOrder.API_HostAddress = https://localhost:7117
 
-GET {{ProductOrder.API_HostAddress}}/weatherforecast/
-Accept: application/json
+# ============================================
+# STEP-BY-STEP TEST FLOW (Run in Order)
+# ============================================
+# STEP 1: Create Inventory Item (Inventory.API)
+# STEP 2: Create Product (ProductOrder.API) <-- START HERE
+# STEP 3: Get Products to Verify
+# STEP 4: Reserve Stock (Inventory.API)
+# STEP 5: Create Order (ProductOrder.API - calls Inventory API)
+# ============================================
+
+### STEP 2: Create Product - Laptop
+# Expected: 201 Created with product object (id, name, price, createdAt)
+# Prerequisites: Run STEP 1 in Inventory.API first (creates stock)
+POST {{ProductOrder.API_HostAddress}}/api/product
+Content-Type: application/json
+
+{
+  "name": "Laptop",
+  "price": 999.99
+}
+
+###
+
+### STEP 2b: Create Product - Mouse
+# Expected: 201 Created with product object
+# Prerequisites: Run STEP 1b in Inventory.API first (creates stock)
+POST {{ProductOrder.API_HostAddress}}/api/product
+Content-Type: application/json
+
+{
+  "name": "Mouse",
+  "price": 25.50
+}
+
+###
+
+### STEP 3: Get All Products
+# Expected: 200 OK with array of all products
+GET {{ProductOrder.API_HostAddress}}/api/product
+
+###
+
+### STEP 3b: Get Product by ID (Success)
+# Expected: 200 OK with single product object
+# Note: Replace {id} with actual product ID from STEP 2
+GET {{ProductOrder.API_HostAddress}}/api/product/1
+
+###
+
+### STEP 3c: Get Product by ID (Not Found)
+# Expected: 404 NotFound (empty body)
+GET {{ProductOrder.API_HostAddress}}/api/product/999
+
+###
+
+### STEP 4: Reserve Stock via ProductOrder (Internal API Call)
+# Expected: 200 OK with message "Stock reserved successfully."
+# Prerequisites: Product with ID 1 exists and has stock
+POST {{ProductOrder.API_HostAddress}}/api/order
+Content-Type: application/json
+
+{
+  "orderItems": [
+    {
+      "id": 1,
+      "productId": 1,
+      "quantity": 2
+    }
+  ]
+}
+
+###
+
+### STEP 4b: Create Order (Multiple Items)
+# Expected: 200 OK with message and orderId
+# This will call Inventory API to reserve stock for both products
+POST {{ProductOrder.API_HostAddress}}/api/order
+Content-Type: application/json
+
+{
+  "orderItems": [
+    {
+      "id": 1,
+      "productId": 1,
+      "quantity": 1
+    },
+    {
+      "id": 2,
+      "productId": 2,
+      "quantity": 3
+    }
+  ]
+}
+
+###
+
+# ============================================
+# ERROR SCENARIOS
+# ============================================
+
+### Create Order (Empty Items - Error)
+# Expected: 400 BadRequest with message "Order must contain at least one item."
+POST {{ProductOrder.API_HostAddress}}/api/order
+Content-Type: application/json
+
+{
+  "orderItems": []
+}
+
+###
+
+### Create Order (Product Not Found - Error)
+# Expected: 400 BadRequest with message "Product with ID 999 does not exist."
+POST {{ProductOrder.API_HostAddress}}/api/order
+Content-Type: application/json
+
+{
+  "orderItems": [
+    {
+      "id": 1,
+      "productId": 999,
+      "quantity": 2
+    }
+  ]
+}
+
+###
+
+### Create Order (Insufficient Inventory - Error)
+# Expected: 400 BadRequest with message about insufficient stock
+# Prerequisites: Product with ID 1 exists but stock is limited
+POST {{ProductOrder.API_HostAddress}}/api/order
+Content-Type: application/json
+
+{
+  "orderItems": [
+    {
+      "id": 1,
+      "productId": 1,
+      "quantity": 9999
+    }
+  ]
+}
 
 ###

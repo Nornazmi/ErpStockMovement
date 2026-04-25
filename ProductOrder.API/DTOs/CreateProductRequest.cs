@@ -1,4 +1,4 @@
-namespace ProductOrder.API.Models;
+namespace ProductOrder.API.DTOs;
 
 public class CreateProductRequest
 {
