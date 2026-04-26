@@ -74,6 +74,23 @@ dotnet run
 - Inventory API: `https://localhost:7099/swagger`
 - ProductOrder API: `https://localhost:7117/swagger`
 
+### 5. Configure Inventory API Connection
+
+Since ProductOrder.API calls Inventory.API via HTTP, you must configure the correct base URL:
+
+1. **Start Inventory API first** and note the port it runs on (check console output)
+2. **Update ProductOrder.API/appsettings.json**:
+
+```json
+{
+  "InventoryApi": {
+    "BaseUrl": "https://localhost:7099"
+  }
+}
+```
+
+**Important**: The port may vary (e.g., `https://localhost:5001`, `https://localhost:7099`). Always check the actual port from the Inventory API console output and update accordingly.
+
 ## API Endpoints
 
 ### ProductOrder.API
